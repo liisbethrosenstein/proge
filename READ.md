@@ -1,3 +1,3 @@
 Marie Sulbi
-Elisabet Peeterson 
+Elisabet Peterson 
 Liisbeth Rosenstein 
