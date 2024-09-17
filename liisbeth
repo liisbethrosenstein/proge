@@ -18,3 +18,26 @@ def init_login_window(self):
         if os.path.exists(DATA_FILE):
             with open(DATA_FILE, "r") as file:
                 self.user_data = json.load(file)
+def signup(self):
+        """Sign up a new user."""
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+
+        if username in self.user_data:
+            messagebox.showerror("Error", "Username already exists!")
+        else:
+            self.user_data[username] = {"password": password, "tasks": [], "branches": 0}
+            self.save_user_data()
+            messagebox.showinfo("Success", "Account created! Please log in.")
+
+    def login(self):
+        """Login the user."""
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+
+        if username in self.user_data and self.user_data[username]["password"] == password:
+            self.username = username
+            self.login_frame.pack_forget()
+            self.init_todo_window()
+        else:
+            messagebox.showerror("Error", "Invalid username or password!")
