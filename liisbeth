@@ -11,8 +11,8 @@ def init_login_window(self):
         self.password_entry = tk.Entry(self.login_frame, show="*")
         self.password_entry.grid(row=1, column=1)
 
-        tk.Button(self.login_frame, text="Login", command=self.login).grid(row=2, column=0, columnspan=2, pady=10)
-        tk.Button(self.login_frame, text="Sign Up", command=self.signup).grid(row=3, column=0, columnspan=2)
+        tk.Button(self.login_frame, text="Logi sisse", command=self.login).grid(row=2, column=0, columnspan=2, pady=10)
+        tk.Button(self.login_frame, text="Loo konto", command=self.signup).grid(row=3, column=0, columnspan=2)
 
         # Load user data if the file exists
         if os.path.exists(DATA_FILE):
@@ -24,11 +24,11 @@ def signup(self):
         password = self.password_entry.get()
 
         if username in self.user_data:
-            messagebox.showerror("Error", "Username already exists!")
+            messagebox.showerror("Viga", "Kasutajanimi juba võetud!")
         else:
             self.user_data[username] = {"password": password, "tasks": [], "branches": 0}
             self.save_user_data()
-            messagebox.showinfo("Success", "Account created! Please log in.")
+            messagebox.showinfo("Konto loodud", "Logi sisse.")
 
     def login(self):
         """Login the user."""
@@ -40,4 +40,4 @@ def signup(self):
             self.login_frame.pack_forget()
             self.init_todo_window()
         else:
-            messagebox.showerror("Error", "Invalid username or password!")
+            messagebox.showerror("Viga", "Vale parool või kasutajanimi!")
