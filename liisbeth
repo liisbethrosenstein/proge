@@ -1,0 +1,20 @@
+def init_login_window(self):
+        """Initial window for user login/signup."""
+        self.login_frame = tk.Frame(self.root)
+        self.login_frame.pack(pady=20)
+
+        tk.Label(self.login_frame, text="Username:").grid(row=0, column=0)
+        tk.Label(self.login_frame, text="Password:").grid(row=1, column=0)
+
+        self.username_entry = tk.Entry(self.login_frame)
+        self.username_entry.grid(row=0, column=1)
+        self.password_entry = tk.Entry(self.login_frame, show="*")
+        self.password_entry.grid(row=1, column=1)
+
+        tk.Button(self.login_frame, text="Login", command=self.login).grid(row=2, column=0, columnspan=2, pady=10)
+        tk.Button(self.login_frame, text="Sign Up", command=self.signup).grid(row=3, column=0, columnspan=2)
+
+        # Load user data if the file exists
+        if os.path.exists(DATA_FILE):
+            with open(DATA_FILE, "r") as file:
+                self.user_data = json.load(file)
