@@ -1,31 +1,162 @@
-from tkinter import *            # tkinteri põhivahendid
-from tkinter import ttk          # platvormi ühise stiili saamiseks
-
-# see funktsioon käivitatakse nupule klõpsamisel
-def logisisse():
-    kasutajanimixdbong = kasutajanimi_entry.get()
-    paroolxdbong = parool_entry.get()
-
-def registreeri():
-    regamine = username_entry.get()
-    regamisesalasõna = username_entry.get()
-    
-
-# loome akna
-raam = Tk()
-raam.title("Logi sisse")
-raam.geometry("500x300")
-
-# loome tekstikasti
-kasutajanimi = ttk.Entry(raam)
-kasutajanimi.place(x=175, y=5, width=150)
-parool = ttk.Entry(raam)
-parool.place(x=175, y=30, width=150)
-# loome nupu
-nupp=ttk.Button(raam, text="Logi sisse", command=logisisse)
-nupp.place(x=70, y=70, width=150)
-nupp1=ttk.Label(raam, text="Registreeri kasutaja", command=registreeri)
-nupp1.place(x=250, y=70, width=150)
-
-# ilmutame akna ekraanile
-raam.mainloop()
+import tkinter as tk
+from tkinter import messagebox
+import json
+import os
+import time
+# Fail kasutaja andmete salvestamiseks
+DATA_FILE = "kasutaja_andmed.json"
+class ToDoApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Logi sisse")
+        self.root.geometry("800x600")
+        self.user_data = {}
+        self.username = None
+        self.active_task = None
+        self.timer_running = False
+        self.start_time = 0
+        self.init_login_window()
+    def init_login_window(self):
+        """Esialgne aken kasutaja sisselogimiseks või registreerimiseks."""
+        self.login_frame = tk.Frame(self.root)
+        self.login_frame.pack(pady=20)
+        tk.Label(self.login_frame, text="Kasutajanimi:").grid(row=0, column=0)
+        tk.Label(self.login_frame, text="Parool:").grid(row=1, column=0)
+        self.username_entry = tk.Entry(self.login_frame)
+        self.username_entry.grid(row=0, column=1)
+        self.password_entry = tk.Entry(self.login_frame, show="*")
+        self.password_entry.grid(row=1, column=1)
+        tk.Button(self.login_frame, text="Logi sisse", command=self.login).grid(row=2, column=0, columnspan=2, pady=10)
+        tk.Button(self.login_frame, text="Registreeri", command=self.signup).grid(row=3, column=0, columnspan=2)
+        # Laadi kasutaja andmed, kui fail eksisteerib
+        if os.path.exists(DATA_FILE):
+            with open(DATA_FILE, "r") as file:
+                self.user_data = json.load(file)
+    def signup(self):
+        """Loo uus kasutaja."""
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+        if username in self.user_data:
+            messagebox.showerror("Viga", "Kasutajanimi on juba olemas!")
+        else:
+            self.user_data[username] = {"password": password, "tasks": [], "branches": 0}
+            self.save_user_data()
+            messagebox.showinfo("Edu", "Konto loodud! Palun logi sisse.")
+    def login(self):
+        """Logi kasutaja sisse."""
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+        if username in self.user_data and self.user_data[username]["password"] == password:
+            self.username = username
+            self.login_frame.pack_forget()
+            self.init_todo_window()
+        else:
+            messagebox.showerror("Viga", "Vale kasutajanimi või parool!")
+    def logout(self):
+        """Logi kasutaja välja ja näita uuesti sisselogimisakent."""
+        self.todo_frame.pack_forget()
+        self.tree_canvas.pack_forget()
+        self.login_frame.pack(pady=20)
+        self.timer_running = False
+    def init_todo_window(self):
+        """To-Do Listi peamine aken."""
+        self.todo_frame = tk.Frame(self.root)
+        self.todo_frame.pack(pady=10)
+        self.task_listbox = tk.Listbox(self.todo_frame, height=10, width=40)
+        self.task_listbox.grid(row=0, column=0, columnspan=3)
+        self.load_tasks()
+        self.task_entry = tk.Entry(self.todo_frame, width=30)
+        self.task_entry.grid(row=1, column=0)
+        tk.Button(self.todo_frame, text="LISA", command=self.add_task).grid(row=1, column=1)
+        tk.Button(self.todo_frame, text="Kustuta ülesanne", command=self.complete_task).grid(row=2, column=0, columnspan=3, pady=10)
+        # Nupud ülesande jaoks
+        tk.Button(self.todo_frame, text="Alusta", command=self.start_timer).grid(row=3, column=0)
+        tk.Button(self.todo_frame, text="Lõpeta", command=self.finish_task).grid(row=3, column=1)
+        tk.Button(self.todo_frame, text="Peata", command=self.stop_timer).grid(row=3, column=2)
+        # Taimeri kuvamiseks
+        self.timer_label = tk.Label(self.todo_frame, text="00:00")
+        self.timer_label.grid(row=4, column=0, columnspan=3)
+        # "Logi välja" nupp
+        tk.Button(self.todo_frame, text="Logi välja", command=self.logout).grid(row=5, column=0, columnspan=3)
+        # Loome canvas puu jaoks
+        self.tree_canvas = tk.Canvas(self.root, width=400, height=200, bg="white")
+        self.tree_canvas.pack()
+        self.draw_tree()
+    def add_task(self):
+        """Lisa uus ülesanne nimekirja."""
+        task = self.task_entry.get()
+        if task:
+            self.task_listbox.insert(tk.END, task)
+            self.user_data[self.username]["tasks"].append(task)
+            self.save_user_data()
+            self.task_entry.delete(0, tk.END)
+    def complete_task(self):
+        """Märgi ülesanne tehtuks ja kustuta see nimekirjast."""
+        selected_task = self.task_listbox.curselection()
+        if selected_task:
+            task_index = selected_task[0]
+            self.task_listbox.delete(task_index)
+            del self.user_data[self.username]["tasks"][task_index]
+            self.grow_branch()  # Lisa oks igal ülesande lõpetamisel
+            self.save_user_data()
+        else:
+            messagebox.showwarning("Hoiatus", "Vali ülesanne, mida teha!")
+    def start_timer(self):
+        """Alusta taimeri käivitamist."""
+        if not self.timer_running:
+            selected_task = self.task_listbox.curselection()
+            if selected_task:
+                self.active_task = selected_task[0]
+                self.timer_running = True
+                self.start_time = time.time()
+                self.update_timer()
+    def stop_timer(self):
+        """Peata taimer."""
+        self.timer_running = False
+    def finish_task(self):
+        """Lõpeta ülesanne, lisa oks ja peata taimer."""
+        if self.timer_running:
+            self.stop_timer()
+            self.complete_task()  # Märgi ülesanne tehtuks ja lisa oks
+    def update_timer(self):
+        """Uuenda taimerit iga sekundi järel."""
+        if self.timer_running:
+            elapsed_time = int(time.time() - self.start_time)
+            minutes = elapsed_time // 60
+            seconds = elapsed_time % 60
+            self.timer_label.config(text=f"{minutes:02}:{seconds:02}")
+            if self.timer_running:
+                self.root.after(1000, self.update_timer)
+    def grow_branch(self):
+        """Lisa puule üks oks, kui on täidetud ülesanne."""
+        if self.user_data[self.username]["branches"] < 12:  # Maksimaalselt 12 oksa
+            self.user_data[self.username]["branches"] += 1
+            self.draw_tree()
+    def save_user_data(self):
+        """Salvesta kasutaja andmed failisüsteemi."""
+        with open(DATA_FILE, "w") as file:
+            json.dump(self.user_data, file)
+    def load_tasks(self):
+        """Laadi ülesanded salvestatud kasutaja andmetest."""
+        tasks = self.user_data[self.username]["tasks"]
+        for task in tasks:
+            self.task_listbox.insert(tk.END, task)
+    def draw_tree(self):
+        """Joonista puu koos okstega vastavalt täidetud ülesannetele."""
+        self.tree_canvas.delete("all")
+        # Joonista tüvi
+        self.tree_canvas.create_line(200, 150, 200, 100, width=10)
+        # Joonista oksad
+        num_branches = self.user_data[self.username]["branches"]
+        for i in range(num_branches):
+            angle = 30 + (i * 30)  # Muuda nurka
+            length = 50
+            x = 200
+            y = 100
+            end_x = x + length * (1 if i % 2 == 0 else -1)
+            end_y = y - length
+            self.tree_canvas.create_line(x, y, end_x, end_y, width=5)
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ToDoApp(root)
+    root.mainloop()
