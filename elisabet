@@ -1,1 +1,36 @@
+import tkinter as tk
+from PIL import Image, ImageTk
+
+
+initial_size = (100, 100)
+
+
+root = tk.Tk()
+root.title("Pildi kuvamine")
+
+# Laadime pildi
+image_path = "puu.png"  
+image = Image.open(image_path)
+image = image.resize(initial_size)  
+photo = ImageTk.PhotoImage(image)
+
+# Loome Labeli, kuhu pilt paigutame
+label = tk.Label(root, image=photo)
+label.pack(side=tk.BOTTOM)
+
+# Funktsioon pildi suuruse muutmiseks
+def grow_image():
+    global image, photo
+    new_size = (int(image.size[0] * 1.10), int(image.size[1] * 1.10))
+    image = image.resize(new_size)
+    photo = ImageTk.PhotoImage(image)
+    label.config(image=photo)  
+
+    #10 sekundi pärast
+    root.after(1000, grow_image)
+
+
+grow_image()
+
+root.mainloop()
 
