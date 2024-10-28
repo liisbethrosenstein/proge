@@ -120,16 +120,16 @@ class ToDoApp:
         self.task_entry.grid(row=1, column=0)
         tk.Button(self.todo_frame, text="LISA", command=self.add_task, bg='#f06292', font=('Helvetica', 14)).grid(row=1, column=1)
 
-        tk.Button(self.todo_frame, text="Kustuta ülesanne", command=self.complete_task, bg='#f06292', font=('Helvetica', 14)).grid(row=2, column=0, columnspan=3, pady=10)
+        tk.Button(self.todo_frame, text="KUSTUTA ÜLESANNE", command=self.complete_task, bg='#f06292', font=('Helvetica', 14)).grid(row=2, column=0, columnspan=3, pady=10)
 
-        tk.Button(self.todo_frame, text="Alusta", command=self.start_timer, bg='#f06292', font=('Helvetica', 14)).grid(row=3, column=0)
-        tk.Button(self.todo_frame, text="Lõpeta", command=self.finish_task, bg='#f06292', font=('Helvetica', 14)).grid(row=3, column=1)
-        tk.Button(self.todo_frame, text="Peata", command=self.stop_timer, bg='#f06292', font=('Helvetica', 14)).grid(row=3, column=2)
+        tk.Button(self.todo_frame, text="ALUSTA", command=self.start_timer, bg='#f06292', font=('Helvetica', 14)).grid(row=3, column=0)
+        tk.Button(self.todo_frame, text="LÕPETA", command=self.finish_task, bg='#f06292', font=('Helvetica', 14)).grid(row=3, column=1)
+        tk.Button(self.todo_frame, text="PEATA", command=self.stop_timer, bg='#f06292', font=('Helvetica', 14)).grid(row=3, column=2)
 
         self.timer_label = tk.Label(self.todo_frame, text="00:00", bg='#fce4ec', font=('Helvetica', 18))
         self.timer_label.grid(row=4, column=0, columnspan=3)
 
-        tk.Button(self.todo_frame, text="Logi välja", command=self.logout, bg='#f06292', font=('Helvetica', 14)).grid(row=5, column=0, columnspan=3)
+        tk.Button(self.todo_frame, text="LOGI VÄLJA", command=self.logout, bg='#f06292', font=('Helvetica', 14)).grid(row=5, column=0, columnspan=3)
 
         self.tree_canvas = tk.Label(self.root, bg='#e68cad')  # Puu
         self.tree_canvas.pack(side=tk.BOTTOM)
@@ -211,4 +211,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = ToDoApp(root)
     root.mainloop()
-
