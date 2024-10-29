@@ -6,11 +6,11 @@ import time
 from cryptography.fernet import Fernet
 from PIL import Image, ImageTk
 
-DATA_FILE = "kasutaja_andmed.json"  # Kaust kuhu kõik andmed salvestuvad, kasutajanimi, parool, ülesanded ja puu progress
-KEY_FILE = "salajane_voti.key"  # Koodil enda salajane võtmekene millega kaust dekrüpteerida
+DATA_FILE = "kasutaja_andmed.json"  # Data file for user info
+KEY_FILE = "salajane_voti.key"  # Secret key file for encryption
 IMAGE_PATH = "puu.png"
 
-initial_size = (100, 100)  # Puu suurus alguses
+initial_size = (100, 100)  # Initial size for the tree image
 
 def loo_voti():
     if not os.path.exists(KEY_FILE):
@@ -22,12 +22,12 @@ def laadi_voti():
     with open(KEY_FILE, "rb") as key_file:
         return key_file.read()
 
-def krupteeri_andmed(plain_data, key):  # Krüpteerib andmed
+def krupteeri_andmed(plain_data, key):  # Encrypt data
     fernet = Fernet(key)
     encrypted_data = fernet.encrypt(plain_data.encode())
     return encrypted_data
 
-def dekrupteeri_andmed(encrypted_data, key):  # Dekrüpteerib andmed
+def dekrupteeri_andmed(encrypted_data, key):  # Decrypt data
     fernet = Fernet(key)
     decrypted_data = fernet.decrypt(encrypted_data).decode()
     return decrypted_data
@@ -37,7 +37,7 @@ class ToDoApp:
         self.root = root
         self.root.title("Logi sisse")
         self.root.geometry("800x600")
-        self.root.configure(bg='#e68cad')  # Taustavärv
+        self.root.configure(bg='#e68cad')  # Background color
 
         loo_voti()
         self.key = laadi_voti()
@@ -50,7 +50,7 @@ class ToDoApp:
 
         self.init_login_window()
 
-    def init_login_window(self):  # Sisselogimise aken
+    def init_login_window(self):  # Login window
         self.login_frame = tk.Frame(self.root, bg='#f5cedc', padx=20, pady=20, borderwidth=5, relief=tk.RAISED)
         self.login_frame.pack(pady=200)
 
@@ -62,24 +62,24 @@ class ToDoApp:
         self.salasõna_entry = tk.Entry(self.login_frame, show="*", font=('Helvetica', 14), bg='white')
         self.salasõna_entry.grid(row=1, column=1, pady=5)
 
-        button_frame = tk.Frame(self.login_frame, bg='#f48fb1')
+        button_frame = tk.Frame(self.login_frame, bg='#f5cedc')
         button_frame.grid(row=2, column=0, columnspan=2, pady=10)
 
-        button_color = '#f06292'  # Hele roosa nuppude jaoks
+        button_color = '#f06292'  # Light pink for buttons
         
         login_button = tk.Button(button_frame, text="LOGI SISSE", command=self.login, bg=button_color, font=('Helvetica', 14), relief='raised', bd=3)
-        login_button.pack(side=tk.LEFT, padx=10, pady=5, fill=tk.X)
+        login_button.pack(side=tk.LEFT, padx=0, pady=0)
 
         signup_button = tk.Button(button_frame, text="REGISTREERI", command=self.signup, bg=button_color, font=('Helvetica', 14), relief='raised', bd=3)
-        signup_button.pack(side=tk.LEFT, padx=10, pady=5, fill=tk.X)
+        signup_button.pack(side=tk.LEFT, padx=0, pady=0)
 
-        if os.path.exists(DATA_FILE):  # Kasutajaandmete laadimine, kui konto on olemas
+        if os.path.exists(DATA_FILE):  # Load user data if account exists
             with open(DATA_FILE, "rb") as file:
                 encrypted_data = file.read()
                 decrypted_data = dekrupteeri_andmed(encrypted_data, self.key)
                 self.user_data = json.loads(decrypted_data)
 
-    def signup(self):  # Uue kasutaja loomine
+    def signup(self):  # Create a new user
         kasutajanimi = self.kasutajanimi_entry.get() 
         salasõna = self.salasõna_entry.get()
 
@@ -90,7 +90,7 @@ class ToDoApp:
             self.save_user_data()
             messagebox.showinfo("Edu", "Konto loodud! Palun logi sisse.")
 
-    def login(self):  # Sisse logimine
+    def login(self):  # Login
         kasutajanimi = self.kasutajanimi_entry.get()
         salasõna = self.salasõna_entry.get()
 
@@ -101,13 +101,13 @@ class ToDoApp:
         else:
             messagebox.showerror("Viga", "Vale kasutajanimi või parool!")
 
-    def logout(self):  # Välja logimine
+    def logout(self):  # Logout
         self.todo_frame.pack_forget()
         self.tree_canvas.pack_forget()
         self.login_frame.pack(pady=20)
         self.timer_running = False
 
-    def init_todo_window(self):  # Peamine aken
+    def init_todo_window(self):  # Main window
         self.todo_frame = tk.Frame(self.root, bg='#fce4ec', padx=10, pady=10)
         self.todo_frame.pack(pady=10)
 
@@ -116,31 +116,40 @@ class ToDoApp:
 
         self.load_tasks()
 
-        self.task_entry = tk.Entry(self.todo_frame, width=30, font=('Helvetica', 14), bg='white')
-        self.task_entry.grid(row=1, column=0)
-        tk.Button(self.todo_frame, text="LISA", command=self.add_task, bg='#f06292', font=('Helvetica', 14)).grid(row=1, column=1)
+        # Create a frame for task entry and buttons
+        task_frame = tk.Frame(self.todo_frame, bg='#fce4ec')
+        task_frame.grid(row=1, column=0, columnspan=3)
 
-        tk.Button(self.todo_frame, text="KUSTUTA ÜLESANNE", command=self.complete_task, bg='#f06292', font=('Helvetica', 14)).grid(row=2, column=0, columnspan=3, pady=10)
+        self.task_entry = tk.Entry(task_frame, width=30, font=('Helvetica', 14), bg='white')
+        self.task_entry.pack(side=tk.LEFT)
 
-        tk.Button(self.todo_frame, text="ALUSTA", command=self.start_timer, bg='#f06292', font=('Helvetica', 14)).grid(row=3, column=0)
-        tk.Button(self.todo_frame, text="LÕPETA", command=self.finish_task, bg='#f06292', font=('Helvetica', 14)).grid(row=3, column=1)
-        tk.Button(self.todo_frame, text="PEATA", command=self.stop_timer, bg='#f06292', font=('Helvetica', 14)).grid(row=3, column=2)
+        # "+" and "-" buttons next to task entry
+        tk.Button(task_frame, text="+", command=self.add_task, bg='#f06292', font=('Helvetica', 14)).pack(side=tk.LEFT, padx=5)
+        tk.Button(task_frame, text="-", command=self.complete_task, bg='#f06292', font=('Helvetica', 14)).pack(side=tk.LEFT, padx=5)
+
+        # Other buttons in one row
+        button_frame = tk.Frame(self.todo_frame, bg='#fce4ec')
+        button_frame.grid(row=2, column=0, columnspan=3, pady=10)
+
+        tk.Button(button_frame, text="ALUSTA", command=self.start_timer, bg='#f06292', font=('Helvetica', 14)).pack(side=tk.LEFT, padx=5, pady=0)
+        tk.Button(button_frame, text="LÕPETA", command=self.finish_task, bg='#f06292', font=('Helvetica', 14)).pack(side=tk.LEFT, padx=5, pady=0)
+        tk.Button(button_frame, text="PEATA", command=self.stop_timer, bg='#f06292', font=('Helvetica', 14)).pack(side=tk.LEFT, padx=5, pady=0)
 
         self.timer_label = tk.Label(self.todo_frame, text="00:00", bg='#fce4ec', font=('Helvetica', 18))
         self.timer_label.grid(row=4, column=0, columnspan=3)
 
         tk.Button(self.todo_frame, text="LOGI VÄLJA", command=self.logout, bg='#f06292', font=('Helvetica', 14)).grid(row=5, column=0, columnspan=3)
 
-        self.tree_canvas = tk.Label(self.root, bg='#e68cad')  # Puu
+        self.tree_canvas = tk.Label(self.root, bg='#e68cad')  # Tree
         self.tree_canvas.pack(side=tk.BOTTOM)
         self.image = Image.open(IMAGE_PATH)
         self.image = self.image.resize(initial_size)
         self.photo = ImageTk.PhotoImage(self.image)
         self.tree_canvas.config(image=self.photo)
 
-        self.grow_image()  # Puu kasvab
+        self.grow_image()  # Tree grows
 
-    def add_task(self):  # Uue ülesande lisamine
+    def add_task(self):  # Add new task
         task = self.task_entry.get() 
         if task:
             self.task_listbox.insert(tk.END, task)
@@ -148,18 +157,18 @@ class ToDoApp:
             self.save_user_data()
             self.task_entry.delete(0, tk.END)
 
-    def complete_task(self):  # Märgib ülesande tehtuks ja kustutab ära
+    def complete_task(self):  # Mark task as done and delete
         selected_task = self.task_listbox.curselection()
         if selected_task:
             task_index = selected_task[0]
             self.task_listbox.delete(task_index)
             del self.user_data[self.kasutajanimi]["tasks"][task_index]
-            self.grow_branch()  # Teeb pilti suuremaks iga kord kui ülesanne tehtud saab
+            self.grow_branch()  # Grow image each time a task is completed
             self.save_user_data()
         else:
             messagebox.showwarning("Hoiatus", "Vali ülesanne, mida teha!")
 
-    def start_timer(self):  # Taimeri käivitamine, kui ülesannet on alustatud
+    def start_timer(self):  # Start timer when task is started
         if not self.timer_running:
             selected_task = self.task_listbox.curselection()
             if selected_task:
@@ -168,15 +177,15 @@ class ToDoApp:
                 self.start_time = time.time()
                 self.update_timer()
 
-    def stop_timer(self):  # Taimeri peatamine, kui ülesanne on lõpetatud
+    def stop_timer(self):  # Stop timer when task is completed
         self.timer_running = False
 
-    def finish_task(self):  # Lisab oksa ja peatab timeri kui ülesanne on tehtud
+    def finish_task(self):  # Adds a branch and stops timer when task is done
         if self.timer_running:
             self.stop_timer()
             self.complete_task()  
 
-    def update_timer(self):  # Timeri uuendab
+    def update_timer(self):  # Update timer
         if self.timer_running:
             elapsed_time = int(time.time() - self.start_time)
             minutes = elapsed_time // 60
@@ -186,23 +195,23 @@ class ToDoApp:
             if self.timer_running:
                 self.root.after(1000, self.update_timer)
 
-    def grow_branch(self):  # Kasvatab oksa (tegelikult teeb lisapilti suuremaks)
-        if self.user_data[self.kasutajanimi]["branches"] < 12:  # Saab max 12 korda kasvada, muidu liiga suur
+    def grow_branch(self):  # Grow branch (image size)
+        if self.user_data[self.kasutajanimi]["branches"] < 12:  # Max 12 growths
             self.user_data[self.kasutajanimi]["branches"] += 1
             self.grow_image()  
 
-    def grow_image(self):  # Muudab pilti suuremaks
+    def grow_image(self):  # Resize image larger
         new_size = (int(self.image.size[0] * 1.10), int(self.image.size[1] * 1.10))
         self.image = self.image.resize(new_size)
         self.photo = ImageTk.PhotoImage(self.image)
         self.tree_canvas.config(image=self.photo)
 
-    def save_user_data(self):  # Andmete salvestamine krüpteeritult
+    def save_user_data(self):  # Save data encrypted
         with open(DATA_FILE, "wb") as file:
             encrypted_data = krupteeri_andmed(json.dumps(self.user_data), self.key)
             file.write(encrypted_data)
 
-    def load_tasks(self):  # Laeb salvestatud ülesanded kaustast
+    def load_tasks(self):  # Load saved tasks
         tasks = self.user_data[self.kasutajanimi]["tasks"]
         for task in tasks:
             self.task_listbox.insert(tk.END, task)
@@ -211,3 +220,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = ToDoApp(root)
     root.mainloop()
+
