@@ -8,3 +8,4 @@ https://trello.com/invite/b/66e009626fc459756aee981a/ATTIf0821f36ddcce2bad9ab0ed
 ![368099255-6bf591b2-5695-4a22-b719-3050f2348f74](https://github.com/user-attachments/assets/bb837d4f-72ec-48b0-b21a-ca09e6ad5966)
 
 14.10 ülesanded on kõik meie nimede all, Elisabet tegi puu kasvamise funktsiooni, Liisbeth tegi sisselogimise koodi ja Marie tegi andmete krüpteerimise koodi
+![puu](https://github.com/user-attachments/assets/9cc943e0-ccca-46f1-8837-15bba4c48aa2)
